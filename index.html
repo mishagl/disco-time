@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord Time Format Generator</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    .container {
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #5865F2;
+      margin-top: 0;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="time"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #5865F2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    button:hover {
+      background-color: #4752C4;
+    }
+    #copy-btn {
+      background-color: #3BA55C;
+    }
+    #copy-btn:hover {
+      background-color: #2D8348;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .message {
+      color: #3BA55C;
+      margin-top: 10px;
+      font-size: 14px;
+      height: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Discord Time Format Generator</h1>
+    <p>Create time range in Discord timestamp format</p>
+    
+    <div class="form-group">
+      <label for="start-time">Start Time:</label>
+      <input type="time" id="start-time" value="08:00">
+    </div>
+    
+    <div class="form-group">
+      <label for="end-time">End Time:</label>
+      <input type="time" id="end-time" value="16:00">
+    </div>
+    
+    <div class="button-group">
+      <button id="generate-btn">Generate</button>
+      <button id="copy-btn">Copy to Clipboard</button>
+    </div>
+    
+    <div id="result"></div>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script>
+    /**
+     * Gets Unix timestamp for a specified time on today's date
+     * @param {string} time - Time in 'HH:mm' format
+     * @returns {number} Unix timestamp in seconds
+     */
+    function getUnixTimeForSpecifiedTimeToday(time) {
+      if (!time) {
+        throw new Error("Please specify a time in 'HH:mm' format");
+      }
+
+      // Get the current date
+      const now = new Date();
+      const currentDate = now.toISOString().split('T')[0]; // 'yyyy-MM-dd' format
+
+      // Combine the current date with the specified time
+      const dateTimeString = `${currentDate}T${time}:00`;
+
+      // Convert to DateTime object
+      const dateTime = new Date(dateTimeString);
+
+      // Convert to Unix time (seconds)
+      const unixTime = Math.floor(dateTime.getTime() / 1000);
+
+      return unixTime;
+    }
+
+    // DOM elements
+    const startTimeInput = document.getElementById('start-time');
+    const endTimeInput = document.getElementById('end-time');
+    const generateBtn = document.getElementById('generate-btn');
+    const copyBtn = document.getElementById('copy-btn');
+    const resultDiv = document.getElementById('result');
+    const messageDiv = document.getElementById('message');
+
+    // Generate result
+    function generateResult() {
+      const startTime = startTimeInput.value;
+      const endTime = endTimeInput.value;
+      
+      try {
+        const start = getUnixTimeForSpecifiedTimeToday(startTime);
+        const end = getUnixTimeForSpecifiedTimeToday(endTime);
+        
+        const result = `<t:${start}:t> - <t:${end}:t>`;
+        resultDiv.textContent = result;
+        messageDiv.textContent = '';
+        
+        return result;
+      } catch (error) {
+        messageDiv.textContent = error.message;
+        return '';
+      }
+    }
+
+    // Copy to clipboard
+    async function copyToClipboard() {
+      const textToCopy = resultDiv.textContent;
+      
+      if (!textToCopy) {
+        messageDiv.textContent = 'Nothing to copy. Generate a result first.';
+        return;
+      }
+      
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        messageDiv.textContent = 'Copied to clipboard!';
+        
+        // Clear the message after 3 seconds
+        setTimeout(() => {
+          messageDiv.textContent = '';
+        }, 3000);
+      } catch (err) {
+        messageDiv.textContent = 'Failed to copy: ' + err;
+      }
+    }
+
+    // Event listeners
+    generateBtn.addEventListener('click', generateResult);
+    copyBtn.addEventListener('click', copyToClipboard);
+
+    // Generate on page load
+    window.addEventListener('DOMContentLoaded', generateResult);
+  </script>
+</body>
+</html>
